@@ -30,7 +30,7 @@ public class JobStatusClientImpl implements JobStatusClient {
 
     private JobTimeOutUtil jobTimeOutUtil;
 
-    private Cache<String, CachedJobStatus> jobStatusCache;
+    private Cache<Long, CachedJobStatus> jobStatusCache;
 
     @Autowired
     public JobStatusClientImpl(RestTemplate restTemplate,
@@ -48,11 +48,13 @@ public class JobStatusClientImpl implements JobStatusClient {
     }
 
     @Override
-    public JobStatus getJobStatus() {
+    public JobStatus getJobStatus(long id) {
         try {
-            return jobStatusCache.get("job_status", () -> {
+            return jobStatusCache.get(id, () -> {
+
                 LOGGER.info("Cache miss, calling API service to retrieve job status.");
-                String src = Objects.requireNonNull(restTemplate.getForObject(jobApiUrl + "/status", Object.class)).toString().replace("=", ":");
+
+                String src = Objects.requireNonNull(restTemplate.getForObject(jobApiUrl + "/status/" + id, Object.class)).toString().replace("=", ":");
                 JSONObject jsonObject = new JSONObject(src);
                 return new CachedJobStatus(JobStatus.fromString(jsonObject.getString("result")), Instant.now());
             }).getJobStatus();
@@ -62,17 +64,19 @@ public class JobStatusClientImpl implements JobStatusClient {
     }
 
     @Override
-    public void startJob() {
+    public long startJob() {
         try {
             Map<String, Long> request = new HashMap<>();
             long timeToFinishJob = jobTimeOutUtil.getJobTimeout(10L, 60L);
             request.put("timeout", timeToFinishJob);
 
-            LOGGER.info("The expected time to finish the job is {}", timeToFinishJob);
+            long id = restTemplate.postForObject(jobApiUrl + "/start", request, Long.class);
+            LOGGER.info("The expected time to finish the job {} is {}s", id, timeToFinishJob);
 
-            restTemplate.postForObject(jobApiUrl + "/start", request, Void.class);
-            jobStatusCache.put("job_status", new CachedJobStatus(JobStatus.PENDING, Instant.now()));
+            jobStatusCache.put(id, new CachedJobStatus(JobStatus.PENDING, Instant.now()));
             LOGGER.info("Put job status to cache when job started.");
+
+            return id;
         } catch (Exception e) {
             throw new RuntimeException(e);
         }

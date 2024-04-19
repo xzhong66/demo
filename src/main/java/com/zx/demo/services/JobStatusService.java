@@ -2,7 +2,10 @@ package com.zx.demo.services;
 
 import com.zx.demo.controller.JobStatusController;
 import com.zx.demo.data.JobStatus;
+import com.zx.demo.data.entity.Job;
+import com.zx.demo.data.repository.JobRepository;
 import com.zx.demo.util.JobTimeOutUtil;
+import jakarta.transaction.Transactional;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -12,57 +15,47 @@ import java.time.Duration;
 import java.time.Instant;
 
 @Service
+@Transactional
 public class JobStatusService {
 
     private static final Logger LOGGER = LoggerFactory.getLogger(JobStatusService.class);
 
-    private JobStatus jobStatus;
-    private Instant jobStartTime;
-    private long jobTimeoutSeconds;
+    private JobRepository jobRepository;
 
     @Autowired
-    private JobTimeOutUtil jobTimeOutUtil;
-
-    public JobStatusService() {}
-
-    public JobStatus getJobStatus() {
-        checkJobStatus();
-        return this.jobStatus;
+    public JobStatusService(JobRepository jobRepository) {
+        this.jobRepository = jobRepository;
     }
 
-    public void setJobStatus(JobStatus jobStatus) {
-        this.jobStatus = jobStatus;
+    public JobStatus getJobStatus(long jobId) {
+        Job job = jobRepository.findById(jobId)
+                .orElseThrow(() -> new IllegalArgumentException("Job not found with id: " + jobId));
+        return checkAndUpdateJobStatus(job);
     }
 
-    public long getJobTimeoutSeconds() {
-        return this.jobTimeoutSeconds;
-    }
-
-    public void setJobTimeoutSeconds(long jobTimeoutSeconds) {
-        this.jobTimeoutSeconds = jobTimeoutSeconds;
-    }
-
-    public Instant getJobStartTime() {
-        return this.jobStartTime;
-    }
-
-    public void setJobStartTime(Instant jobStartTime) {
-        this.jobStartTime = jobStartTime;
-    }
-
-    public void startJob() {
+    public long startJob(long timeout) {
         Instant startTime = Instant.now();
         JobStatus initialStatus = JobStatus.PENDING;
 
-        setJobStartTime(startTime);
-        setJobStatus(initialStatus);
+        Job job = new Job(initialStatus, startTime, timeout);
+        jobRepository.save(job);
 
-        LOGGER.info("Job started at {}, the expected video translation time is {}s", startTime, getJobTimeoutSeconds());
+        LOGGER.info("Job {} started at {}, the expected video translation time is {}s", job.getId(), startTime, timeout);
+
+        return job.getId();
     }
 
-    private void checkJobStatus() {
-        if (jobStatus == JobStatus.PENDING && Duration.between(jobStartTime, Instant.now()).getSeconds() >= jobTimeoutSeconds) {
-            this.jobStatus = JobStatus.COMPLETED;
+    private JobStatus checkAndUpdateJobStatus(Job job) {
+        if(job.getJobStatus() == JobStatus.ERROR) {
+            return JobStatus.ERROR;
         }
+
+        if (job.getJobStatus() == JobStatus.PENDING && Duration.between(job.getJobStartTime(), Instant.now()).getSeconds() >= job.getJobTimeoutSeconds()) {
+            job.setJobStatus(JobStatus.COMPLETED);
+            jobRepository.save(job);
+            return JobStatus.COMPLETED;
+        }
+
+        return JobStatus.PENDING;
     }
 }

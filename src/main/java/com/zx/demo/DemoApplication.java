@@ -21,20 +21,25 @@ public class DemoApplication {
 	@Bean
 	public CommandLineRunner commandLineRunner(JobStatusService jobStatusService) {
 		return args -> {
-			// Start the job
-			jobStatusClient.startJob();
 
-			// Check the job status every 3 seconds
-			while (true) {
-				JobStatus jobStatus = jobStatusClient.getJobStatus();
-				System.out.println("Job status: " + jobStatus);
+			int jobs = 3;
 
-				if (jobStatus != JobStatus.PENDING) {
-					System.out.println("break");
-					break;
+			while(jobs-- > 0 ) {
+				// Start the job
+				long id = jobStatusClient.startJob();
+
+				// Check the job status every 3 seconds
+				while (true) {
+					JobStatus jobStatus = jobStatusClient.getJobStatus(id);
+					System.out.println("Job id and status: " + id + " " + jobStatus);
+
+					if (jobStatus != JobStatus.PENDING) {
+						System.out.println("break");
+						break;
+					}
+
+					Thread.sleep(3000);
 				}
-
-				Thread.sleep(3000);
 			}
 		};
 	}
