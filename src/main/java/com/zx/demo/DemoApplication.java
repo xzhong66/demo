@@ -1,6 +1,5 @@
 package com.zx.demo;
 
-import com.fasterxml.jackson.databind.util.JSONPObject;
 import com.zx.demo.client.JobStatusClient;
 import com.zx.demo.data.JobStatus;
 import com.zx.demo.services.JobStatusService;
@@ -27,11 +26,10 @@ public class DemoApplication {
 
 			// Check the job status every 3 seconds
 			while (true) {
-				String temp = jobStatusClient.getJobStatus().toString();
-				String jobStatus = temp.substring(1, temp.length() - 1).split("=")[1];
+				JobStatus jobStatus = jobStatusClient.getJobStatus();
 				System.out.println("Job status: " + jobStatus);
 
-				if (!jobStatus.equals(JobStatus.PENDING.toString())) {
+				if (jobStatus != JobStatus.PENDING) {
 					System.out.println("break");
 					break;
 				}

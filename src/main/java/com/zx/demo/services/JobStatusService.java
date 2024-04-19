@@ -51,11 +51,9 @@ public class JobStatusService {
     }
 
     public void startJob() {
-//        long timeout = jobTimeOutUtil.getJobTimeout(1L, 20L);
         Instant startTime = Instant.now();
         JobStatus initialStatus = JobStatus.PENDING;
 
-//        setJobTimeoutSeconds(timeout);
         setJobStartTime(startTime);
         setJobStatus(initialStatus);
 
