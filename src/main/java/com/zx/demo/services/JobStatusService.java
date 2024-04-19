@@ -50,6 +50,10 @@ public class JobStatusService {
             return JobStatus.ERROR;
         }
 
+        if(job.getJobStatus() == JobStatus.COMPLETED) {
+            return JobStatus.COMPLETED;
+        }
+
         if (job.getJobStatus() == JobStatus.PENDING && Duration.between(job.getJobStartTime(), Instant.now()).getSeconds() >= job.getJobTimeoutSeconds()) {
             job.setJobStatus(JobStatus.COMPLETED);
             jobRepository.save(job);
