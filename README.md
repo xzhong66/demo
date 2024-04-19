@@ -33,7 +33,7 @@ The purpose of this API is to simulate the behavior of a video translation serve
 a command line runner in the main application, it will run when the application starts. In the command line runner, 3 jobs will be created and their
 status will be retrieved. The remaining one is from the `src/test/java/com/zx/demo/IntegrationTest.java`. **P.S.** 3 is just an arbitrary number and 
 the command line runner is to simulate third party developers creating jobs and retrieving job status.
-4. Run the application: `mvn spring-boot:run`, the integration test will not run for this command, so you should see 3 jobs in the IDE console.
+4. Run the application: `mvn spring-boot:run` or through IDE, the integration test will not run for this command, so you should see 3 jobs in the IDE console.
 5. Once the app is running, you should see jobs records in H2 database console
     - ![Alt text](pngs/h2_console.png)
 
