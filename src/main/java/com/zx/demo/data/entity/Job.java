@@ -8,6 +8,9 @@ import jakarta.persistence.Id;
 
 import java.time.Instant;
 
+/***
+ * JPA entity storing job specific information
+ */
 @Entity
 public class Job {
 
@@ -19,8 +22,10 @@ public class Job {
 
     private JobStatus jobStatus;
 
+    // the start time of a job
     private Instant jobStartTime;
 
+    // the expected time taken to finish the job
     private long jobTimeoutSeconds;
 
     public Job(JobStatus jobStatus, Instant jobStartTime, long jobTimeoutSeconds) {

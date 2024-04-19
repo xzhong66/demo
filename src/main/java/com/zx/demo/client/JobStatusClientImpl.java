@@ -47,13 +47,22 @@ public class JobStatusClientImpl implements JobStatusClient {
         this.jobTimeOutUtil = jobTimeOutUtil;
     }
 
+    /***
+     * Get job status for a given jobId
+     * @param id jobId
+     * @return JobStatus
+     */
     @Override
     public JobStatus getJobStatus(long id) {
         try {
+            // check if the job is in cache.
+            // If so, return the job status from cache.
+            // Otherwise , get it by calling the status API and write to cache.
             return jobStatusCache.get(id, () -> {
 
                 LOGGER.info("Cache miss, calling API service to retrieve job status.");
 
+                // get status by calling API
                 String src = Objects.requireNonNull(restTemplate.getForObject(jobApiUrl + "/status/" + id, Object.class)).toString().replace("=", ":");
                 JSONObject jsonObject = new JSONObject(src);
                 return new CachedJobStatus(JobStatus.fromString(jsonObject.getString("result")), Instant.now());
@@ -63,16 +72,25 @@ public class JobStatusClientImpl implements JobStatusClient {
         }
     }
 
+    /***
+     * Call status API to start a new job
+     * @return the jobId of the newly created job
+     */
     @Override
     public long startJob() {
         try {
+            // need to pass a request param specifying how long will the new job take to be finished
             Map<String, Long> request = new HashMap<>();
+
+            // using a random number generator to simulate video translation time, every video has a different time to complete
             long timeToFinishJob = jobTimeOutUtil.getJobTimeout(10L, 60L);
             request.put("timeout", timeToFinishJob);
 
+            // calling API and get jobID
             long id = restTemplate.postForObject(jobApiUrl + "/start", request, Long.class);
             LOGGER.info("The expected time to finish the job {} is {}s", id, timeToFinishJob);
 
+            // save in cache
             jobStatusCache.put(id, new CachedJobStatus(JobStatus.PENDING, Instant.now()));
             LOGGER.info("Put job status to cache when job started.");
 

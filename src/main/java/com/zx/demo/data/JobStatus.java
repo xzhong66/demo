@@ -5,6 +5,11 @@ public enum JobStatus {
     COMPLETED,
     ERROR;
 
+    /***
+     * Convert string to enum
+     * @param s
+     * @return enum type
+     */
     public static JobStatus fromString(String s) {
         try {
             return JobStatus.valueOf(s);

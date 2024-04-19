@@ -18,10 +18,15 @@ public class DemoApplication {
 		SpringApplication.run(DemoApplication.class, args);
 	}
 
+	/***
+	 * This is to simulate the integration of a third party app calling Job Status API
+	 * @return
+	 */
 	@Bean
-	public CommandLineRunner commandLineRunner(JobStatusService jobStatusService) {
+	public CommandLineRunner commandLineRunner() {
 		return args -> {
 
+			// 3 is an arbitrary number for demo purpose
 			int jobs = 3;
 
 			while(jobs-- > 0 ) {

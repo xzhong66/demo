@@ -2,6 +2,9 @@ package com.zx.demo.data;
 
 import java.time.Instant;
 
+/***
+ * Object that will be stored in cache
+ */
 public class CachedJobStatus {
     private JobStatus jobStatus;
     private Instant lastUpdated;

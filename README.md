@@ -59,6 +59,10 @@ Pending if the job is not finished:
 Completed if the job is finished without error:
 ![Alt text](pngs/Postman_get_COMPLETED.png)  
 
+Error handling is also supported:
+![Alt text](pngs/Postman_get_ERROR.png)  
+
+
 ### Using the JobStatusClient
 
 The `JobStatusClient` interface provides a client-facing library for interacting with the Job Status API. Once this API project is published to maven repository it can be used by third-party applications to start new jobs and retrieve job status information.
@@ -100,5 +104,6 @@ By integrating with Guava Cache, the third-party users will have a more efficien
 AWS SQS could be one option to implement this mechanism.
 - Cloud deployment and further configuration is needed.
 - For large systems, we could choose more scalable and reliable DB and Cache service like AWS RDS and Redis.
+- Cache expiration time should be carefully considered bases on the overall time for a video translation to complete. Data analysis may be needed.
 - A lightweight UI component could be added to make this project a fullstack.
 
